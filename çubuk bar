@@ -1,0 +1,38 @@
+#include <Wire.h> 
+#include <LiquidCrystal_I2C.h>
+
+// 0x27 genelde standart adrestir. Eğer ekran çalışmazsa 0x3F dene.
+LiquidCrystal_I2C lcd(0x27, 16, 2); 
+
+const int numRows = 2;
+const int numCols = 16;
+
+byte glyphs[8][8] = {
+      {B00000,B00000,B00000,B00000,B00000,B00000,B00000,B11111}, // 0
+      {B00000,B00000,B00000,B00000,B00000,B00000,B11111,B11111}, // 1
+      {B00000,B00000,B00000,B00000,B00000,B11111,B11111,B11111}, // 2
+      {B00000,B00000,B00000,B00000,B11111,B11111,B11111,B11111}, // 3
+      {B00000,B00000,B00000,B11111,B11111,B11111,B11111,B11111}, // 4
+      {B00000,B00000,B11111,B11111,B11111,B11111,B11111,B11111}, // 5  
+      {B00000,B11111,B11111,B11111,B11111,B11111,B11111,B11111}, // 6
+      {B11111,B11111,B11111,B11111,B11111,B11111,B11111,B11111}}; // 7
+
+void setup() {
+  lcd.init();          // I2C ekranı başlatır
+  lcd.backlight();     // Arka ışığı açar
+  
+  for(int i = 0; i < 8; i++) {
+    lcd.createChar(i, glyphs[i]); // Özel karakterleri yükle
+  }
+  lcd.clear();
+}
+
+void loop() {
+  lcd.setCursor(0, 0);
+  for(byte i = 0; i < 8; i++) {
+    lcd.write(i); // Özel karakterleri ekrana bas
+  }
+  
+  delay(2000);
+  lcd.clear();
+}
