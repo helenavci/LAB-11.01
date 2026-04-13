@@ -1,0 +1,56 @@
+#include <Wire.h> 
+#include <LiquidCrystal_I2C.h>
+
+LiquidCrystal_I2C lcd(0x27, 16, 2); 
+
+const int numRows = 2;
+const int numCols = 16;
+
+byte glyphs[8][8] = {
+  {B00000,B00000,B00000,B00000,B00000,B00000,B00000,B11111}, // 0: En kısa
+  {B00000,B00000,B00000,B00000,B00000,B00000,B11111,B11111}, // 1
+  {B00000,B00000,B00000,B00000,B00000,B11111,B11111,B11111}, // 2
+  {B00000,B00000,B00000,B00000,B11111,B11111,B11111,B11111}, // 3
+  {B00000,B00000,B00000,B11111,B11111,B11111,B11111,B11111}, // 4
+  {B00000,B00000,B11111,B11111,B11111,B11111,B11111,B11111}, // 5  
+  {B00000,B11111,B11111,B11111,B11111,B11111,B11111,B11111}, // 6
+  {B11111,B11111,B11111,B11111,B11111,B11111,B11111,B11111}  // 7: En uzun (Full)
+};
+
+void setup() {
+  lcd.init();          // Ekranı başlat
+  lcd.backlight();     // Arka ışığı aç
+  
+  for(int i = 0; i < 8; i++) {
+    lcd.createChar(i, glyphs[i]);
+  }
+  lcd.clear();
+}
+
+void loop() {
+  int val = analogRead(A0);
+  
+  // ÜST SATIR (Çubuk Bölgesi)
+  lcd.setCursor(0, 0);
+  
+  if (val <= 5) { 
+    lcd.print(" "); 
+  } 
+  else {
+    int glyphIndex = map(val, 0, 1023, 0, 7);
+    
+    if(glyphIndex < 0) glyphIndex = 0;
+    if(glyphIndex > 7) glyphIndex = 7;
+    
+    lcd.write((byte)glyphIndex);
+  }
+  
+  lcd.print("                "); // Satırı temizlemek için
+
+  // ALT SATIR
+  lcd.setCursor(0, 1);
+  lcd.print(val);
+  lcd.print("     "); 
+
+  delay(50);
+}
