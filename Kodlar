@@ -1,0 +1,73 @@
+#include <LiquidCrystal.h>
+
+LiquidCrystal lcd(12, 11, 5, 4, 3, 2);
+
+
+byte p1[8] = {0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10}; 
+byte p2[8] = {0x18, 0x18, 0x18, 0x18, 0x18, 0x18, 0x18, 0x18};
+byte p3[8] = {0x1C, 0x1C, 0x1C, 0x1C, 0x1C, 0x1C, 0x1C, 0x1C};
+byte p4[8] = {0x1E, 0x1E, 0x1E, 0x1E, 0x1E, 0x1E, 0x1E, 0x1E};
+byte p5[8] = {0x1F, 0x1F, 0x1F, 0x1F, 0x1F, 0x1F, 0x1F, 0x1F};
+
+String hamMesaj = "";
+String dinamikMesaj = "";
+int scrollIndex = 16; 
+unsigned long sonZaman = 0;
+unsigned long baslangicZamani = 0;
+
+void setup() {
+  lcd.begin(16, 2);
+  
+  lcd.createChar(1, p1);
+  lcd.createChar(2, p2);
+  lcd.createChar(3, p3);
+  lcd.createChar(4, p4);
+  lcd.createChar(5, p5);
+  
+  baslangicZamani = millis(); 
+}
+
+void loop() {
+  int sensor = analogRead(A0);
+  float sicaklik = (sensor * 5.0 / 1024.0 - 0.5) * 100;
+  
+  hamMesaj = "Sicaklik: " + String(sicaklik, 1) + " C";
+  dinamikMesaj = "                " + hamMesaj + "                ";
+
+  if (millis() - baslangicZamani < 3000) {
+
+    lcd.setCursor(0, 0);
+    lcd.print(hamMesaj + "    "); 
+  } 
+  else {
+
+    if (millis() - sonZaman > 250) {
+      lcd.setCursor(0, 0);
+      String goster = dinamikMesaj.substring(scrollIndex, scrollIndex + 16);
+      lcd.print(goster);
+      
+      scrollIndex--; 
+      
+      if (scrollIndex < 0) {
+        scrollIndex = dinamikMesaj.length() - 16;
+      }
+      sonZaman = millis();
+    }
+  }
+
+
+  int toplamPiksel = map(sicaklik, 0, 50, 0, 80); 
+  int tamKarakter = toplamPiksel / 5;
+  int kalanSutun = toplamPiksel % 5;
+
+  lcd.setCursor(0, 1);
+  for (int i = 0; i < 16; i++) {
+    if (i < tamKarakter) {
+      lcd.write(5); 
+    } else if (i == tamKarakter && kalanSutun > 0) {
+      lcd.write(kalanSutun); 
+    } else {
+      lcd.print(" "); 
+    }
+  }
+}
