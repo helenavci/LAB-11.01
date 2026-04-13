@@ -1,0 +1,66 @@
+#include <Wire.h>
+#include <Adafruit_GFX.h>
+#include <Adafruit_SSD1306.h>
+
+#define SCREEN_WIDTH 128 // OLED ekran genişliği, piksel cinsinden
+#define SCREEN_HEIGHT 32 // OLED ekran yüksekliği, piksel cinsinden
+
+// I2C OLED ekran için bağlantı (Reset pini olmayan ekranlar için -1 kullanılır)
+#define OLED_RESET     -1 
+#define SCREEN_ADDRESS 0x3C /// Genellikle 0x3C veya 0x3D olur
+
+Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
+
+void setup() {
+  Serial.begin(9600);
+
+  // Ekranı I2C adresiyle başlat
+  if(!display.begin(SSD1306_SWITCHCAPVCC, SCREEN_ADDRESS)) {
+    Serial.println(F("SSD1306 başlatılamadı"));
+    for(;;); // Hata durumunda durdur
+  }
+
+  display.clearDisplay();
+  
+  showAndScroll("Small", 1);
+  showAndScroll("Medium", 2);
+  showAndScroll("Large", 3);
+}
+
+void showAndScroll(String text, int textSize) {
+  display.clearDisplay();
+  display.setTextColor(SSD1306_WHITE);
+  display.setTextSize(textSize);
+  display.setCursor(0, 0);
+  
+  display.println(text);
+  display.display();
+
+  // Ekranı 3 saniye sağa kaydır
+  display.startscrollright(0x00, 0x0F);
+  delay(3000);
+  display.stopscroll();
+}
+
+int ballDir = 1; 
+int ballDiameter = 8; 
+int ballX = 8; // ballDiameter ile aynı
+int ballY = 16; // 32 yüksekliğindeki ekranın ortası
+
+void loop() {
+  // Topu bir önceki konumunda sil (INVERSE modu yerine temizleyip tekrar çiziyoruz)
+  display.clearDisplay();
+
+  // Kenar kontrolü
+  if (ballX >= SCREEN_WIDTH - (ballDiameter/2) || ballX < (ballDiameter/2)) {
+    ballDir *= -1;
+  }
+
+  ballX += ballDir;
+
+  // Yeni konumda topu çiz
+  display.fillCircle(ballX, ballY, ballDiameter/2, SSD1306_WHITE);
+  display.display();
+  
+  delay(10); // Hareket hızı
+}
