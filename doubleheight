@@ -1,0 +1,62 @@
+#include <Wire.h> 
+#include <LiquidCrystal_I2C.h>
+
+// I2C adresi ve ekran boyutları
+const int numRows = 2;
+const int numCols = 16;
+LiquidCrystal_I2C lcd(0x27, numCols, numRows); 
+
+// 8 farklı doluluk seviyesi için piksel tanımları
+byte glyphs[8][8] = {
+      {B00000,B00000,B00000,B00000,B00000,B00000,B00000,B11111}, // 0
+      {B00000,B00000,B00000,B00000,B00000,B00000,B11111,B11111}, // 1
+      {B00000,B00000,B00000,B00000,B00000,B11111,B11111,B11111}, // 2
+      {B00000,B00000,B00000,B00000,B11111,B11111,B11111,B11111}, // 3
+      {B00000,B00000,B00000,B11111,B11111,B11111,B11111,B11111}, // 4
+      {B00000,B00000,B11111,B11111,B11111,B11111,B11111,B11111}, // 5  
+      {B00000,B11111,B11111,B11111,B11111,B11111,B11111,B11111}, // 6
+      {B11111,B11111,B11111,B11111,B11111,B11111,B11111,B11111}  // 7
+};
+
+void setup() {
+  lcd.init();          // LCD'yi başlat
+  lcd.backlight();     // Arka ışığı aç
+  
+  // 8 özel karakteri belleğe yükle
+  for(int i=0; i < 8; i++) {
+    lcd.createChar(i, glyphs[i]);
+  }
+  lcd.clear();
+}
+
+void loop() {
+  // 0'dan 15'e kadar olan değerleri ekranın ilk 16 sütununda göster
+  for(int val = 0; val <= 15; val++) {
+    doubleHeightBars(val, val); // Deger arttıkça bir sonraki sütuna geç
+    delay(200);
+  }
+  
+  delay(2000);
+  lcd.clear();
+}
+
+// İki satırı birleştirerek yüksek çözünürlüklü çubuk oluşturan fonksiyon
+void doubleHeightBars(int value, int column) {
+  uint8_t upperGlyph;
+  uint8_t lowerGlyph;
+
+  if(value < 8) {
+    upperGlyph = ' ';   // Üst satır tamamen boş
+    lowerGlyph = value; // Alt satır gelen değere göre dolar
+  }
+  else {
+    upperGlyph = value - 8; // Değer 8'den büyükse üst satır dolmaya başlar
+    lowerGlyph = 7;         // Alt satır tamamen dolu (tüm pikseller yanık)
+  }
+
+  lcd.setCursor(column, 0); // Üst satıra konumlan
+  lcd.write(upperGlyph);
+  
+  lcd.setCursor(column, 1); // Alt satıra konumlan
+  lcd.write(lowerGlyph);
+}
