@@ -16,15 +16,15 @@ void setup() {
 
   // Ekranı I2C adresiyle başlat
   if(!display.begin(SSD1306_SWITCHCAPVCC, SCREEN_ADDRESS)) {
-    Serial.println(F("SSD1306 başlatılamadı"));
-    for(;;); // Hata durumunda durdur
+    Serial.println(F("SSD1306 ekran bulunamadi"));
+    while(1); // Hata durumunda durdur
   }
 
   display.clearDisplay();
   
-  showAndScroll("Small", 1);
-  showAndScroll("Medium", 2);
-  showAndScroll("Large", 3);
+  showAndScroll("Kucuk", 1);
+  showAndScroll("Orta", 2);
+  showAndScroll("Buyuk", 3);
 }
 
 void showAndScroll(String text, int textSize) {
@@ -42,13 +42,13 @@ void showAndScroll(String text, int textSize) {
   display.stopscroll();
 }
 
-int ballDir = 1; 
+int ballDir = 2; 
 int ballDiameter = 8; 
-int ballX = 8; // ballDiameter ile aynı
+int ballX = 10; // ballDiameter ile aynı
 int ballY = 16; // 32 yüksekliğindeki ekranın ortası
 
 void loop() {
-  // Topu bir önceki konumunda sil (INVERSE modu yerine temizleyip tekrar çiziyoruz)
+  // Topu bir önceki konumunda sil 
   display.clearDisplay();
 
   // Kenar kontrolü
