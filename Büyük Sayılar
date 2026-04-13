@@ -1,0 +1,86 @@
+#include <Wire.h> 
+#include <LiquidCrystal_I2C.h> // I2C kütüphanesi
+
+// LCD boyutları (Genelde 16x2 kullanılır, kodunuzdaki 20x4'e göre de uyarlanabilir)
+const int numRows = 2; 
+const int numCols = 16;
+
+// I2C adresi 0x27 olan LCD'yi başlat
+LiquidCrystal_I2C lcd(0x27, numCols, numRows); 
+
+// Büyük rakamları oluşturan özel parçalar (glifler)
+byte glyphs[5][8] = {
+  { B11111,B11111,B00000,B00000,B00000,B00000,B00000,B00000 }, // Üst dolu
+  { B00000,B00000,B00000,B00000,B00000,B00000,B11111,B11111 }, // Alt dolu
+  { B11111,B11111,B00000,B00000,B00000,B00000,B11111,B11111 }, // Üst ve alt dolu
+  { B11111,B11111,B11111,B11111,B11111,B11111,B11111,B11111 }, // Tam dolu blok
+  { B00000,B00000,B00000,B00000,B00000,B01110,B01110,B01110 }  // Küçük orta nokta
+};
+
+const int digitWidth = 3; 
+
+// Büyük sayıları oluşturacak özel karakter indeksleri
+const char bigDigitsTop[10][digitWidth] = { 
+  3,0,3,  0,3,32, 2,2,3,  0,2,3,  3,1,3, // 0-4
+  3,2,2,  3,2,2,  0,0,3,  3,2,3,  3,2,3  // 5-9
+}; 
+
+const char bigDigitsBot[10][digitWidth] = { 
+  3,1,3,  1,3,1,  3,1,1,  1,1,3,  32,32,3, // 0-4
+  1,1,3,  3,1,3,  32,32,3, 3,1,3,  1,1,3   // 5-9
+}; 
+
+void setup() 
+{ 
+  lcd.init();        // I2C LCD başlat
+  lcd.backlight();   // I2C LCD ışığını aç
+  
+  // 5 adet özel karakteri LCD hafızasına yükle
+  for (int i = 0; i < 5; i++) 
+    lcd.createChar(i, glyphs[i]); 
+
+  // Geri sayım ekranı
+  for (int digit = 9; digit >= 0; digit--) 
+  { 
+    showDigit(digit, 0); 
+    delay(800); 
+  } 
+  lcd.clear(); 
+} 
+
+void loop() 
+{
+  // Başlangıçtan itibaren geçen saniyeyi göster
+  int number = millis() / 1000; 
+  showNumber(number, 0); 
+  delay(1000);
+}
+
+// Tek bir rakamı iki satıra yayan fonksiyon
+void showDigit(int digit, int position) 
+{ 
+  // Üst parçayı yazdır
+  lcd.setCursor(position * (digitWidth + 1), 0); 
+  for (int i = 0; i < digitWidth; i++) 
+    lcd.write(bigDigitsTop[digit][i]); 
+
+  // Alt parçayı yazdır
+  lcd.setCursor(position * (digitWidth + 1), 1); 
+  for (int i = 0; i < digitWidth; i++) 
+    lcd.write(bigDigitsBot[digit][i]);
+} 
+
+// Çok basamaklı sayıları büyük rakamlara çeviren fonksiyon
+void showNumber(int value, int position) 
+{
+ String valStr = String(value);
+
+ for(int index = 0; index < valStr.length(); index++) 
+ {
+  if(index >= 4) break; // 16x2 ekran için 4 rakamdan fazlası sığmaz
+  
+  char c = valStr.charAt(index);
+  int digitValue = c - '0'; // ASCII'den sayıya çevir
+  showDigit(digitValue, position + index);
+ }
+}
